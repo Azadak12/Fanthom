@@ -60,6 +60,7 @@ Acceptance criteria in FEATURES.md pass · listed edge cases handled or written 
 - Put a secret key in `web/` or in a `NEXT_PUBLIC_*` variable.
 - Copy Fathom's logo, name or assets.
 - Disable a test, a lint rule or a type check to make the gate pass.
+- .agent-logs/ is written and committed automatically; never edit, tidy or delete it.
 
 # Compact instructions
 When compacting, keep: current feature id and change name, tasks done/remaining, files changed, failing checks and their errors, decisions made. Drop: file contents already written, full test logs.

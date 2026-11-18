@@ -8,8 +8,10 @@ Never blocks the session: always exits 0, errors go to .agent-logs/capture-error
 import json
 import os
 import re
+import subprocess
 import sys
 import tempfile
+import time
 import traceback
 from datetime import datetime, timezone
 from pathlib import Path
@@ -102,10 +104,92 @@ def write_atomic(path, text):
 
 
 def log_error(msg):
+    msg = msg.strip().replace("\n", " | ")
     LOG_DIR.mkdir(parents=True, exist_ok=True)
+    path = LOG_DIR / "capture-errors.log"
+    try:
+        if path.read_text(encoding="utf-8").splitlines()[-1].split(" ", 1)[1] == msg:
+            return  # same error as the last line: don't spam
+    except (OSError, IndexError):
+        pass
     _, ts = utc_now()
-    with open(LOG_DIR / "capture-errors.log", "a", encoding="utf-8") as f:
+    with open(path, "a", encoding="utf-8") as f:
         f.write(f"{ts} {msg}\n")
+
+
+def git(*args, timeout=10):
+    return subprocess.run(
+        ["git", "-C", str(ROOT), *args], capture_output=True, text=True, timeout=timeout,
+        env={**os.environ, "GIT_TERMINAL_PROMPT": "0", "GIT_EDITOR": "true"},
+    )
+
+
+def git_failed(what, r):
+    log_error(f"{what} failed (rc={r.returncode}): {(r.stderr or r.stdout).strip()}")
+
+
+def commit_logs():
+    """Commit only the log directory; other staged or unstaged work is left as it is."""
+    try:
+        rel = LOG_DIR.relative_to(ROOT).as_posix()
+    except ValueError:
+        return  # logs live outside the repo (test mode)
+    r = git("add", "--", rel)
+    if r.returncode:
+        return git_failed("git add", r)
+    r = git("diff", "--cached", "--quiet", "--", rel)
+    if r.returncode == 0:
+        return  # nothing new to commit
+    if r.returncode != 1:
+        return git_failed("git diff --cached", r)
+    r = git("commit", "-m", "chore(logs): capture", "--", rel)
+    if r.returncode:
+        git_failed("git commit", r)
+
+
+def spawn_push():
+    """Push in a detached process so the hook never waits on the network."""
+    subprocess.Popen(
+        [sys.executable, str(Path(__file__).resolve()), "--push"], cwd=ROOT,
+        stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        start_new_session=True,
+    )
+
+
+def push_worker():
+    with open(Path(tempfile.gettempdir()) / "fanthom-capture-push.lock", "w") as lock:
+        if fcntl:
+            fcntl.flock(lock, fcntl.LOCK_EX)  # pushes run one at a time, each sends the latest HEAD
+        b = git("symbolic-ref", "--short", "-q", "HEAD")
+        if b.returncode:
+            return log_error("no current branch (detached HEAD or not a git repo): push skipped")
+        branch = b.stdout.strip()
+        remote = git("config", "--get", f"branch.{branch}.remote").stdout.strip()
+        merge = git("config", "--get", f"branch.{branch}.merge").stdout.strip()
+        if not remote or not merge:
+            return log_error(f"branch {branch} has no upstream: logs committed locally, push skipped")
+        r = git("push", remote, f"HEAD:{merge}", timeout=60)
+        if r.returncode:
+            git_failed("git push", r)
+
+
+def sibling_stop_hook_running():
+    for d in Path("/proc").glob("[0-9]*"):
+        try:
+            if b"stop-hook-git-check" in (d / "cmdline").read_bytes():
+                return True
+        except OSError:
+            continue
+    return False
+
+
+def wait_for_sibling_stop_hooks():
+    # Stop hooks run in parallel and the environment's git check blocks the turn on a dirty tree:
+    # let it look first, then write.
+    time.sleep(0.4)
+    deadline = time.monotonic() + 5
+    while time.monotonic() < deadline and sibling_stop_hook_running():
+        time.sleep(0.1)
 
 
 def find_session_file(sid):
@@ -153,16 +237,28 @@ def handle_stop(p, sid):
 
 
 def main():
+    if sys.argv[1:] == ["--push"]:
+        return push_worker()
     p = json.loads(sys.stdin.read())
     sid = re.sub(r"[^A-Za-z0-9_-]", "", str(p.get("session_id") or "")) or "unknown"
     event = p.get("hook_event_name")
     if event not in ("UserPromptSubmit", "Stop"):
         return
+    if event == "Stop" and not p.get("stop_hook_active"):
+        wait_for_sibling_stop_hooks()
     LOG_DIR.mkdir(parents=True, exist_ok=True)
     with open(Path(tempfile.gettempdir()) / "fanthom-capture.lock", "w") as lock:
         if fcntl:
             fcntl.flock(lock, fcntl.LOCK_EX)
         (handle_prompt if event == "UserPromptSubmit" else handle_stop)(p, sid)
+        try:
+            commit_logs()
+        except Exception as e:
+            log_error(f"commit step failed: {e!r}")
+    try:
+        spawn_push()
+    except Exception as e:
+        log_error(f"push step failed: {e!r}")
 
 
 if __name__ == "__main__":
