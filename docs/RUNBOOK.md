@@ -10,12 +10,12 @@ You **never upload or attach files** to Claude Code. All the docs live inside yo
 |---|---|
 | `CLAUDE.md` | **Loaded automatically** every time you start `claude` in the folder. Never paste it. |
 | `docs/FEATURES.md`, `docs/ARCHITECTURE.md`, `docs/DESIGN.md`, `docs/BRIEF.md` | Claude opens them when **your prompt names them** (e.g. "Read the F2 section of docs/FEATURES.md"). |
-| `openspec/changes/<name>/…` | **Created by OpenSpec** when you run `/opsx:propose`. You review them; `/opsx:apply` builds from them. |
+| `openspec/changes/<name>/…` | **Created by OpenSpec** when you run `/openspec-propose`. You review them; `/openspec-apply-change` builds from them. |
 | `docs/DECISIONS.md` | You or Claude add a line when something changes. |
 
 Two places you type things:
 - **Terminal** → commands like `git`, `openspec init`, `make dev-api`.
-- **Claude Code chat** (after typing `claude`) → prompts and slash commands like `/opsx:propose`, `/model`, `/clear`.
+- **Claude Code chat** (after typing `claude`) → prompts and slash commands like `/openspec-propose`, `/model`, `/clear`.
 
 Run the app locally in three extra terminal tabs whenever you need to test: `make dev-api`, `make dev-worker` and `make dev-web`.
 
@@ -56,7 +56,7 @@ claude
 
 **Prompt 2**
 ```
-/opsx:explore
+/openspec-explore
 Read docs/BRIEF.md, docs/ARCHITECTURE.md, and only the Roadmap table at the top of docs/FEATURES.md.
 1) List anything the brief asks for that FEATURES.md is missing or contradicts.
 2) What in the data model or processing pipeline will break first in production?
@@ -98,7 +98,7 @@ Every feature follows the **same 6 moves**. F0 is written out fully; for F1–F8
 
 **Prompt 5** (model: Opus)
 ```
-/opsx:propose f00-foundation
+/openspec-propose f00-foundation
 Source of truth: the "F0" section of docs/FEATURES.md, plus §1, §3, §5, §6, §7 of docs/ARCHITECTURE.md and §11 of docs/DESIGN.md.
 - Every requirement and every edge case becomes a spec scenario (WHEN/THEN).
 - System design and error handling go into design.md.
@@ -130,7 +130,7 @@ Then terminal: `git add . && git commit -m "docs(f00): proposal"`.
 
 **Prompt 8**
 ```
-/opsx:apply f00-foundation
+/openspec-apply-change f00-foundation
 Do one task group at a time. After each group run `make check`, fix any failures,
 tick the finished tasks in tasks.md, then STOP and tell me in 3 lines:
 files changed, why, and what I should test by hand.
@@ -168,7 +168,7 @@ Find the root cause first and explain it in 2 lines, then fix it and add a test 
 
 **Prompt 10**
 ```
-/opsx:archive f00-foundation
+/openspec-archive-change f00-foundation
 ```
 **What happens:** the spec is merged into `openspec/specs/` and the change moves to `openspec/changes/archive/`.
 
@@ -188,7 +188,7 @@ Terminal: `git add . && git commit -m "chore(f00): archive" && git push`
 
 **Model for propose:** Sonnet (switch with `/model`)
 ```
-/opsx:propose f01-add-meeting
+/openspec-propose f01-add-meeting
 Source of truth: the "F1" section of docs/FEATURES.md, plus §2 and §4 of docs/ARCHITECTURE.md and §7–8 of docs/DESIGN.md.
 - Every requirement and every edge case becomes a spec scenario (WHEN/THEN).
 - System design and error-handling table go into design.md.
@@ -197,7 +197,7 @@ Source of truth: the "F1" section of docs/FEATURES.md, plus §2 and §4 of docs/
 ```
 **Review focus:** file type + size checked on both web and API · cancel deletes row **and** storage object · stuck-upload rule · error messages match the table.
 
-Then the same moves: commit proposal → `/model` Sonnet → `/opsx:apply f01-add-meeting` (same apply prompt as Prompt 8, change the name) → `continue` until done → verify (upload a real mp3, try a .pdf, try a huge file, cancel mid-upload) → `/opsx:archive f01-add-meeting` → commit + push → `/rename f01-add-meeting` → `/clear`.
+Then the same moves: commit proposal → `/model` Sonnet → `/openspec-apply-change f01-add-meeting` (same apply prompt as Prompt 8, change the name) → `continue` until done → verify (upload a real mp3, try a .pdf, try a huge file, cancel mid-upload) → `/openspec-archive-change f01-add-meeting` → commit + push → `/rename f01-add-meeting` → `/clear`.
 
 ---
 
@@ -205,7 +205,7 @@ Then the same moves: commit proposal → `/model` Sonnet → `/opsx:apply f01-ad
 
 **Model for propose:** Opus
 ```
-/opsx:propose f02-transcription
+/openspec-propose f02-transcription
 Source of truth: the "F2" section of docs/FEATURES.md, plus §2 and §3 of docs/ARCHITECTURE.md.
 - Every requirement and every edge case becomes a spec scenario (WHEN/THEN).
 - System design and error-handling table go into design.md.
@@ -225,7 +225,7 @@ Apply → continue → **verify:** upload one of your mock meetings locally, wat
 
 **Model for propose:** Sonnet
 ```
-/opsx:propose f03-meeting-page
+/openspec-propose f03-meeting-page
 Source of truth: the "F3" section of docs/FEATURES.md, plus §6, §7, §8, §10 of docs/DESIGN.md.
 - Every requirement and every edge case becomes a spec scenario (WHEN/THEN).
 - System design and error handling go into design.md.
@@ -243,7 +243,7 @@ Apply → continue → **verify:** click lines (player jumps), play and watch th
 
 **Model for propose:** Opus
 ```
-/opsx:propose f04-summary-actions
+/openspec-propose f04-summary-actions
 Source of truth: the "F4" section of docs/FEATURES.md, plus §3 of docs/ARCHITECTURE.md (citation contract) and §7 of docs/DESIGN.md (citation chip).
 - Every requirement and every edge case becomes a spec scenario (WHEN/THEN).
 - System design and error-handling table go into design.md.
@@ -271,7 +271,7 @@ Terminal (production `DATABASE_URL` in `api/.env`): `make seed`. Check the live 
 
 **Model for propose:** Sonnet
 ```
-/opsx:propose f05-ask-ai
+/openspec-propose f05-ask-ai
 Source of truth: the "F5" section of docs/FEATURES.md, plus §3 of docs/ARCHITECTURE.md and §7 of docs/DESIGN.md (Ask AI, citation chip).
 - Every requirement and every edge case becomes a spec scenario (WHEN/THEN).
 - System design and error handling go into design.md.
@@ -288,7 +288,7 @@ Apply → continue → **verify:** ask 3 real questions, one off-topic question,
 
 **Model for propose:** Sonnet
 ```
-/opsx:propose f06-dashboard-search
+/openspec-propose f06-dashboard-search
 Source of truth: the "F6" section of docs/FEATURES.md, plus §3–4 of docs/ARCHITECTURE.md.
 - Every requirement and every edge case becomes a spec scenario (WHEN/THEN).
 - tasks.md: search endpoint + tests first (use the tsvector column), then `make gen-api`, then UI.
@@ -302,7 +302,7 @@ Apply → continue → verify → archive → commit + push → rename → clear
 
 ### F7 — Highlights + share (optional — only if F0–F6 are solid)
 ```
-/opsx:propose f07-highlights-share
+/openspec-propose f07-highlights-share
 Source of truth: the "F7" section of docs/FEATURES.md, plus §4 of docs/ARCHITECTURE.md.
 - Every requirement and every edge case becomes a spec scenario (WHEN/THEN).
 - tasks.md: API + tests first, then `make gen-api`, then UI. Add nothing outside F7.
@@ -312,7 +312,7 @@ Source of truth: the "F7" section of docs/FEATURES.md, plus §4 of docs/ARCHITEC
 ### F8 — Login (optional — only if everything else is done)
 Model: Opus.
 ```
-/opsx:propose f08-auth
+/openspec-propose f08-auth
 Source of truth: the "F8" section of docs/FEATURES.md, plus §3 of docs/ARCHITECTURE.md.
 - Every requirement and every edge case becomes a spec scenario (WHEN/THEN).
 - The public demo workspace must keep working with no login.
@@ -376,5 +376,5 @@ Terminal: `git add . && git commit -m "docs: README" && git push`
 | Need to undo Claude's last steps | `/rewind` |
 | Conversation getting long mid-feature | `/compact` |
 | Something broke | the Bug prompt |
-| Feature done | `/opsx:archive <name>` → commit + push → `/rename <name>` → `/clear` |
+| Feature done | `/openspec-archive-change <name>` → commit + push → `/rename <name>` → `/clear` |
 | See where tokens go | `/context` |

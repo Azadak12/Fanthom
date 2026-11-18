@@ -41,7 +41,7 @@ Both redeploy on every push to `main`.
 `web/package.json` scripts that keep output short (fewer tokens when Claude runs them):
 ```json
 "typecheck": "tsc --noEmit",
-"lint": "next lint --quiet",
+"lint": "eslint --quiet",
 "test": "vitest run --reporter=dot",
 "e2e": "playwright test --reporter=line"
 ```
@@ -49,8 +49,8 @@ The backend side is already quiet in the Makefile (`pytest -q`, `ruff --quiet`).
 
 ## 3. Model and context rules (token saving)
 
-- **Model:** Opus for `/opsx:explore`, for reviewing the proposals of F0, F2 and F4 (data model, pipeline, citations), and for hard bugs. **Sonnet for `/opsx:apply`** and small fixes. Switch with `/model`.
-- **One session per feature.** After `/opsx:archive` and the commit: `/rename fNN-name` then `/clear`. A long session re-sends its whole history on every message.
+- **Model:** Opus for `/openspec-explore`, for reviewing the proposals of F0, F2 and F4 (data model, pipeline, citations), and for hard bugs. **Sonnet for `/openspec-apply-change`** and small fixes. Switch with `/model`.
+- **One session per feature.** After `/openspec-archive-change` and the commit: `/rename fNN-name` then `/clear`. A long session re-sends its whole history on every message.
 - **`/compact` only mid-feature** when the context gets big (the compact instructions in CLAUDE.md say what to keep). Between features, always `/clear` instead.
 - **`/context`** when something feels slow, to see what's eating the window.
 - **Point Claude at exact sections**, never "read the docs": _"Read the F4 section of docs/FEATURES.md and §3 of docs/ARCHITECTURE.md."_
@@ -62,7 +62,7 @@ The backend side is already quiet in the Makefile (`pytest -q`, `ruff --quiet`).
 
 ### Step 0 — Explore (once, right after reading the brief)
 ```
-/opsx:explore
+/openspec-explore
 I'm rebuilding Fathom (fathom.video) as "Fanthom" for the 8x Product Engineer assignment.
 Read CLAUDE.md, docs/ARCHITECTURE.md and the Roadmap table at the top of docs/FEATURES.md.
 Here is the assignment brief: <paste brief>.
@@ -75,7 +75,7 @@ Don't write code or files. Answer in a short list.
 
 ### Step 1 — Propose
 ```
-/opsx:propose f02-transcription
+/openspec-propose f02-transcription
 Source of truth: the "F2" section of docs/FEATURES.md, plus §2–3 of docs/ARCHITECTURE.md.
 - Turn every requirement and every edge case into a spec scenario (WHEN/THEN).
 - Put the system design and the error-handling table into design.md.
@@ -93,7 +93,7 @@ Fix it by editing the files directly or telling Claude exactly what to change. T
 
 ### Step 3 — Apply (Sonnet)
 ```
-/opsx:apply f02-transcription
+/openspec-apply-change f02-transcription
 Work one task group at a time. After each group: run the check gate
 (make check), fix failures, tick the tasks,
 then STOP and give me a 3-line summary: files changed, why, anything I should test by hand.
@@ -112,7 +112,7 @@ and add a test that would have caught it.
 
 ### Step 5 — Archive and reset
 ```
-/opsx:archive f02-transcription
+/openspec-archive-change f02-transcription
 ```
 Commit `chore(f02): archive change`, push. Then `/rename f02-transcription` → `/clear`. Next feature.
 

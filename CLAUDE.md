@@ -10,7 +10,7 @@ Promise: _"Meeting notes that show their receipts."_ Built for the 8x Product En
 - `docs/DECISIONS.md` → append a line when scope, stack or design changes.
 
 ## Stack (details in ARCHITECTURE.md)
-Monorepo. `web/`: Next.js 15 App Router · TypeScript strict · Tailwind v4 + shadcn/ui · TanStack Query · typed client generated from the API's OpenAPI.
+Monorepo. `web/`: Next.js 16 App Router · TypeScript strict · Tailwind v4 + shadcn/ui · TanStack Query · typed client generated from the API's OpenAPI.
 `api/`: Python 3.12 · FastAPI · Pydantic v2 · SQLAlchemy 2 async + Alembic · Deepgram · Anthropic SDK · uv · ruff · mypy · pytest.
 Data: Supabase Postgres + Storage. Background work: Postgres job queue + worker. Deploy: web → Vercel, api + worker → Railway.
 Don't add a dependency without a line in `docs/DECISIONS.md`.
@@ -43,7 +43,7 @@ Don't add a dependency without a line in `docs/DECISIONS.md`.
 
 ## How to work
 - One feature = one OpenSpec change named `fNN-name` (e.g. `f02-transcription`). Copy that feature's requirements, edge cases, error handling and design from `docs/FEATURES.md` into the proposal's specs (as scenarios), `design.md` and `tasks.md`.
-- Never start `/opsx:apply` on a proposal the human hasn't approved.
+- Never start `/openspec-apply-change` on a proposal the human hasn't approved.
 - Work through `tasks.md` in order: backend first (schema → service → router → tests), then `make gen-api`, then frontend.
 - After each task group: run `make check`, fix failures, then stop and summarize what changed (files + why) so the human can commit.
 - If a requirement is unclear or conflicts with the code, ask; don't guess.

@@ -9,7 +9,7 @@
 
 | Layer | Choice | Why |
 |---|---|---|
-| Frontend | **Next.js 15 (App Router) + TypeScript strict** | Fast UI, deploys to Vercel |
+| Frontend | **Next.js 16 (App Router) + TypeScript strict** | Fast UI, deploys to Vercel |
 | UI | **Tailwind CSS v4 + shadcn/ui** | Tokens from `docs/DESIGN.md` |
 | Server state | **TanStack Query** | Caching, polling processing status, optimistic updates |
 | API client | **openapi-typescript + openapi-fetch**, generated from FastAPI's `/openapi.json` | Frontend types always match the backend; no hand-written API types |
