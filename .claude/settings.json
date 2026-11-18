@@ -1,0 +1,38 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(make check)",
+      "Bash(make check-api)",
+      "Bash(make check-web)",
+      "Bash(make gen-api)",
+      "Bash(make migration:*)",
+      "Bash(make seed)",
+      "Bash(cd api && uv run pytest:*)",
+      "Bash(cd api && uv run ruff:*)",
+      "Bash(cd api && uv run mypy:*)",
+      "Bash(cd api && uv add:*)",
+      "Bash(cd web && pnpm typecheck)",
+      "Bash(cd web && pnpm lint:*)",
+      "Bash(cd web && pnpm test:*)",
+      "Bash(cd web && pnpm add:*)",
+      "Bash(cd web && pnpm dlx shadcn@latest add:*)",
+      "Bash(git status)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(openspec list:*)",
+      "Bash(openspec status:*)",
+      "Bash(openspec validate:*)"
+    ],
+    "ask": [
+      "Bash(make migrate)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
+    ],
+    "deny": [
+      "Read(./api/.env)",
+      "Read(./web/.env.local)",
+      "Bash(rm -rf:*)",
+      "Bash(git push --force:*)"
+    ]
+  }
+}
