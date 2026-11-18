@@ -1,6 +1,6 @@
 # FEATURES.md — Fanthom Feature Specs (Action List)
 
-> Build **in order**, one feature = one OpenSpec change (`/opsx:propose fNN-name`).
+> Build **in order**, one feature = one OpenSpec change (`/openspec-propose fNN-name`).
 > Each feature has: Goal · Requirements · Acceptance criteria · System design · Edge cases · Error handling · Tasks.
 > Error codes refer to `api/app/core/errors.py` (see `CLAUDE.md` → Backend rules). Design rules: `docs/DESIGN.md`.
 
@@ -29,7 +29,7 @@
 **Goal:** both apps deployed and talking to each other, the full data model migrated, and a seeded demo workspace, so every later feature plugs in.
 
 ### Requirements
-- R0.1 Monorepo per `docs/ARCHITECTURE.md` §5: `api/` (FastAPI, uv, ruff, mypy, pytest) and `web/` (Next.js 15, TS strict, Tailwind v4, shadcn/ui, TanStack Query); root `Makefile` with the commands in ARCHITECTURE §7.
+- R0.1 Monorepo per `docs/ARCHITECTURE.md` §5: `api/` (FastAPI, uv, ruff, mypy, pytest) and `web/` (Next.js 16, TS strict, Tailwind v4, shadcn/ui, TanStack Query); root `Makefile` with the commands in ARCHITECTURE §7.
 - R0.2 SQLAlchemy models for all tables in ARCHITECTURE §3; first Alembic migration (incl. `tsvector` column + GIN index) applied to Supabase.
 - R0.3a Job queue: `jobs` table + `app/services/jobs.py` (enqueue with dedupe, claim with `SKIP LOCKED`, retry with backoff, lease reclaim) + `app/worker.py` (concurrency, graceful SIGTERM). Contract in ARCHITECTURE §3.
 - R0.3b Request-id middleware, structured JSON logging, slowapi rate limiter wired (limits applied per feature), pagination helper.
